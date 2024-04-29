@@ -1,4 +1,4 @@
-# cowrywise-assessment
+# cowrywise-frontend-assessment by Oyinkansola Shoroye
 
 ## Project setup
 ```

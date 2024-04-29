@@ -1,15 +1,16 @@
 <template>
   <div id="app">
-    <router-view />
+    <FundList />
   </div>
 </template>
 
 <script>
-export default {
-  name: 'App'
-}
-</script>
+import FundList from "./components/FundList.vue";
 
-<style>
-/*styling yet to be added*/
-</style>
+export default {
+  name: "App",
+  components: {
+    FundList,
+  },
+};
+</script>

@@ -1,106 +1,121 @@
 <template>
-  <div>
-    <img src="../assets/Cowrywise-Banner.png" alt="cowrywise logo" />
+  <div class="fund-list">
     <h1>Investment Funds</h1>
-    <div class="loader-container" v-if="isLoading">
-      <span class="loader"></span>
+    <div class="filter-container">
+      <label>Filter Funds by: </label>
+      <select v-model="selectedRisk" class="form-select">
+        <option value="">All Risks</option>
+        <option v-for="risk in risks" :value="risk" :key="risk">
+          {{ risk }}
+        </option>
+      </select>
     </div>
-
-    <div v-else>
-      <div v-for="fund in fundsFiltered" :key="fund.id">
-        <router-link :to="{ name: 'FundDetails', params: { id: fund.id } }">
-          {{ fund.name }}
-        </router-link>
-        <p>Returns: {{ fund.returns }}</p>
-        <p v-if="fund.is_money_market">Asset Type: Money Market</p>
-        <p v-else>Asset Type: Other</p>
-        <p>Fund Manager: {{ fund.fund_manager }}</p>
-        <p>Risk Level: {{ fund.risk }}</p>
+    <div class="fund-list-container">
+      <div v-if="loading" class="loading-spinner">
+        <svg viewBox="0 0 24 24">
+          <circle
+            class="loading-spinner-circle"
+            cx="12"
+            cy="12"
+            r="12"
+            fill="none"
+            stroke-width="4"
+            stroke="#337ab7"
+          />
+        </svg>
+      </div>
+      <div v-else>
+        <div v-for="fund in filteredFunds" :key="fund.id" class="fund-item">
+          <router-link
+            :to="{ name: 'FundDetails', params: { id: fund.id } }"
+            class="fund-link"
+          >
+            <img
+              :src="fund.logo"
+              alt="Fund Logo"
+              width="50"
+              class="fund-logo"
+            />
+            <span
+              ><h2>{{ fund.name }}</h2></span
+            >
+          </router-link>
+          <p><b>Returns:</b> {{ fund.returns }}</p>
+          <p><b>Asset Type:</b> {{ fund.composition }}</p>
+          <p><b>Manager:</b> {{ fund.fund_manager }}</p>
+          <p><b>Risk:</b> {{ fund.risk }}</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { computed, ref } from "vue";
-import { useStore } from "../store";
+import { defineComponent, ref, onMounted, computed } from "vue";
+import { useFundsStore } from "../store";
 
-export default {
+export default defineComponent({
   name: "FundList",
   setup() {
-    const store = useStore();
-    const isLoading = ref(true);
+    const store = useFundsStore();
+    const funds = ref([]);
+    const selectedRisk = ref("");
+    const risks = ["1", "2", "3"];
+    const loading = ref(true);
 
-    const fetchFunds = async () => {
-      try {
-        await store.fetchFunds();
-      } catch (error) {
-        console.error("Error fetching funds:", error);
-      } finally {
-        isLoading.value = false;
-      }
+    onMounted(async () => {
+      await store.fetchFunds();
+      funds.value = store.funds;
+      loading.value = false;
+    });
+
+    const filteredFunds = computed(() => {
+      if (!selectedRisk.value) return funds.value;
+      return funds.value.filter(
+        (fund) => fund.risk.toString() === selectedRisk.value
+      );
+    });
+
+    return {
+      funds,
+      selectedRisk,
+      risks,
+      filteredFunds,
+      loading,
     };
-
-    fetchFunds();
-
-    const funds = computed(() => store.funds);
-
-    // Filter out funds with null 'id' property
-    const fundsFiltered = computed(() =>
-      funds.value.filter((fund) => fund && fund.id)
-    );
-
-    return { funds: fundsFiltered, isLoading };
   },
-};
+});
 </script>
 
 <style scoped>
-img {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono&display=swap");
+
+.fund-list {
+  font-family: "Space Mono", monospace;
+  max-width: 800px;
   margin: 0 auto;
-  padding-top: 30px;
-  width: 200px;
+  padding: 20px;
 }
-h1 {
-  color: #022b69;
-  text-align: center;
+
+.filter-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
-.loader-container {
+
+.loading-spinner {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  padding: 20px;
 }
 
-.loader {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  position: relative;
-  animation: rotate 1s linear infinite;
+.loading-spinner-circle {
+  animation: loading-spinner 1s linear infinite;
 }
 
-.loader::before,
-.loader::after {
-  content: "";
-  box-sizing: border-box;
-  position: absolute;
-  inset: 0px;
-  border-radius: 50%;
-  border: 5px solid #0066f5;
-  animation: prixClipFix 2s linear infinite;
-}
-
-.loader::after {
-  border-color: #022b69;
-  animation: prixClipFix 2s linear infinite, rotate 0.5s linear infinite reverse;
-  inset: 6px;
-}
-
-@keyframes rotate {
+@keyframes loading-spinner {
   0% {
     transform: rotate(0deg);
   }
@@ -109,21 +124,52 @@ h1 {
   }
 }
 
-@keyframes prixClipFix {
-  0% {
-    clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0);
+.form-select {
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.fund-list-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.fund-item {
+  flex-basis: 30%;
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.fund-link {
+  text-decoration: none;
+  color: #337ab7;
+}
+
+.fund-logo {
+  width: 50px;
+  height: 50px;
+  margin: 0 10px;
+  border-radius: 50%;
+}
+
+h1 {
+  text-align: center;
+  color: #022b69;
+}
+
+@media (max-width: 768px) {
+  .fund-list-container {
+    flex-direction: column;
   }
-  25% {
-    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0);
-  }
-  50% {
-    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%);
-  }
-  75% {
-    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%);
-  }
-  100% {
-    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
+  .fund-item {
+    flex-basis: 100%;
+    margin-bottom: 20px;
   }
 }
 </style>

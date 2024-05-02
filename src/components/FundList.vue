@@ -41,7 +41,7 @@
             >
           </router-link>
           <p><b>Returns:</b> {{ fund.returns }}</p>
-          <p><b>Asset Type:</b> {{ fund.composition }}</p>
+          <p><b>Asset Type:</b> {{ formatAssetTypes(fund.composition) }}</p>
           <p><b>Manager:</b> {{ fund.fund_manager }}</p>
           <p><b>Risk:</b> {{ fund.risk }}</p>
         </div>
@@ -76,12 +76,20 @@ export default defineComponent({
       );
     });
 
+    // Function to format asset types for display
+    const formatAssetTypes = (composition) => {
+      return Object.entries(composition)
+        .map(([assetType, percentage]) => `${assetType}: ${percentage}%`)
+        .join(", ");
+    };
+
     return {
       funds,
       selectedRisk,
       risks,
       filteredFunds,
       loading,
+      formatAssetTypes,
     };
   },
 });

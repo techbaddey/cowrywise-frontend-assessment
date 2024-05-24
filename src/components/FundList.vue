@@ -11,18 +11,8 @@
       </select>
     </div>
     <div class="fund-list-container">
-      <div v-if="loading" class="loading-spinner">
-        <svg viewBox="0 0 24 24">
-          <circle
-            class="loading-spinner-circle"
-            cx="12"
-            cy="12"
-            r="12"
-            fill="none"
-            stroke-width="4"
-            stroke="#337ab7"
-          />
-        </svg>
+      <div v-if="loading" class="loading">
+        <p>Loading...</p>
       </div>
       <div v-else>
         <div v-for="fund in filteredFunds" :key="fund.id" class="fund-item">
@@ -76,7 +66,6 @@ export default defineComponent({
       );
     });
 
-    // Function to format asset types for display
     const formatAssetTypes = (composition) => {
       return Object.entries(composition)
         .map(([assetType, percentage]) => `${assetType}: ${percentage}%`)
@@ -95,7 +84,7 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style>
 @import url("https://fonts.googleapis.com/css2?family=Space+Mono&display=swap");
 
 .fund-list {
@@ -110,26 +99,6 @@ export default defineComponent({
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-}
-
-.loading-spinner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.loading-spinner-circle {
-  animation: loading-spinner 1s linear infinite;
-}
-
-@keyframes loading-spinner {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 .form-select {
